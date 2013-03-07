@@ -43,9 +43,9 @@ public class SearchService {
 			final String[] searchTerms = searchTerm.split(" ");
 			// Add all search terms to boolean query
 			for (int i = 0; i < searchTerms.length; i++) {
-				// Don't add terms less than length 3 - they make for bad query results
+				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
-				if (searchString.length() >= 3) {
+				if (searchString.length() > 1) {
 					if (i == searchTerms.length - 1)
 						searchString += "*";
 					final QueryParser parser = new QueryParser(Version.LUCENE_41, "searchable_song_artist", LuceneIndex.ANALYZER);
