@@ -27,7 +27,7 @@ public class SearchService {
 
 	@GET
 	@Produces("text/plain")
-	public String getClichedMessage(@QueryParam("callback") final String callback, @QueryParam("searchTerm") final String searchTerm, @QueryParam("limit") int limit, @QueryParam("page") final int page) {
+	public String getClichedMessage(@QueryParam("callback") final String callback, @QueryParam("searchTerm") final String searchTerm, @QueryParam("limit") int limit, @QueryParam("page") final int page, @QueryParam("allWild") final boolean allWild) {
 		if (callback == null || callback.isEmpty()) {
 			return "Callback required";
 		}
@@ -46,8 +46,13 @@ public class SearchService {
 				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
 				if (searchString.length() > 1) {
-					if (i == searchTerms.length - 1)
+					if(allWild) {
+						// Add a wildcard to end of each search term
 						searchString += "*";
+					} else if (i == searchTerms.length - 1) {
+						// Otherwise just add to the last search term
+						searchString += "*";
+					}
 					final QueryParser parser = new QueryParser(Version.LUCENE_41, "searchable_song_artist", LuceneIndex.ANALYZER);
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
 					final Query query = parser.parse(searchString);
@@ -68,6 +73,11 @@ public class SearchService {
 			final ScoreDoc[] hits = results.scoreDocs;
 			final int offset = page * limit;
 			final int count = Math.min(results.totalHits - offset, limit);
+
+			// No results found and we haven't tried all allWild yet, try allWild
+			if(count == 0 && allWild == false) {
+				return getClichedMessage(callback, searchTerm, limit, page, true);
+			}
 
 			//			// Check if page number is invalid
 			//			if (results.totalHits + limit < page * limit)
