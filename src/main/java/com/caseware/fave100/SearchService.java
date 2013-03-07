@@ -99,8 +99,8 @@ public class SearchService {
 				final int docId = hits[i + offset].doc;
 				final Document d = searcher.doc(docId);
 				sb.append("{\"id\":\"" + d.get("id") + "\"");
-				sb.append(",\"song\":\"" + d.get("song").replaceAll("\"", "\\\"") + "\"");
-				sb.append(",\"artist\":\"" + d.get("artist").replaceAll("\"", "\\\"") + "\"");
+				sb.append(",\"song\":\"" + d.get("song").replaceAll("\"", "") + "\"");
+				sb.append(",\"artist\":\"" + d.get("artist").replaceAll("\"", "") + "\"");
 				sb.append("}");
 				//				sb.append((i + 1) + ". " + d.get("song") + "\n\t\t" + d.get("artist") + "\n");
 			}
@@ -121,5 +121,4 @@ public class SearchService {
 		}
 
 	}
-
 }
