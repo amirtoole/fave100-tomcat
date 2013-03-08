@@ -15,6 +15,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -55,9 +56,9 @@ public class SearchService {
 					}
 					final QueryParser parser = new QueryParser(Version.LUCENE_41, "searchable_song_artist", LuceneIndex.ANALYZER);
 					// Special case for one word search to prevent wildcard messing up scoring
-					/*if(searchTerms.length == 1) {
+					if(searchTerms.length == 1) {
 						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-					}*/
+					}
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
 					final Query query = parser.parse(searchString);
 					q.add(query, Occur.MUST);
