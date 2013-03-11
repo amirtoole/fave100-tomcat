@@ -56,7 +56,8 @@ public class SearchService {
 					}
 					final QueryParser parser = new QueryParser(Version.LUCENE_41, "searchable_song_artist", LuceneIndex.ANALYZER);
 					// Special case for one word search to prevent wildcard messing up scoring
-					if(searchTerms.length == 1) {
+					// Search terms of length 3 or less can break the search engine with SCORING_BOOLEAN_QUERY_REWRITE set
+					if(searchTerms.length == 1 && searchTerms[0].length() > 3) {
 						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
 					}
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
