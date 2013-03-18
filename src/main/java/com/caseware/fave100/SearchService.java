@@ -8,13 +8,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -66,11 +63,8 @@ public class SearchService {
 				}
 			}
 
-			final IndexReader reader = DirectoryReader.open(LuceneIndex.INDEX);
-			final IndexSearcher searcher = new IndexSearcher(reader);
-
 			final int searchLimit = (page + 1) * limit;
-			final TopDocs results = searcher.search(q, searchLimit, new Sort(SortField.FIELD_SCORE));
+			final TopDocs results = LuceneIndex.SEARCHER.search(q, searchLimit, new Sort(SortField.FIELD_SCORE));
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
@@ -97,7 +91,7 @@ public class SearchService {
 				if (i > 0)
 					sb.append(",");
 				final int docId = hits[i + offset].doc;
-				final Document d = searcher.doc(docId);
+				final Document d = LuceneIndex.SEARCHER.doc(docId);
 				sb.append("{\"id\":\"" + d.get("id") + "\"");
 				sb.append(",\"song\":\"" + d.get("song").replaceAll("\"", "") + "\"");
 				sb.append(",\"artist\":\"" + d.get("artist").replaceAll("\"", "") + "\"");

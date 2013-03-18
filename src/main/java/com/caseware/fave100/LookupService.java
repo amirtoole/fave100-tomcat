@@ -8,11 +8,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -32,10 +29,7 @@ public class LookupService {
 			final long startTime = System.currentTimeMillis();
 			final Query q = new QueryParser(Version.LUCENE_41, "id", LuceneIndex.ANALYZER).parse(id);
 
-			final IndexReader reader = DirectoryReader.open(LuceneIndex.INDEX);
-			final IndexSearcher searcher = new IndexSearcher(reader);
-
-			final TopDocs results = searcher.search(q, 10);
+			final TopDocs results = LuceneIndex.SEARCHER.search(q, 10);
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
@@ -46,7 +40,7 @@ public class LookupService {
 
 			final ScoreDoc[] hits = results.scoreDocs;
 			final int docId = hits[0].doc;
-			final Document d = searcher.doc(docId);
+			final Document d = LuceneIndex.SEARCHER.doc(docId);
 
 			final StringBuilder sb = new StringBuilder();
 			sb.append("{\"song\":\"" + d.get("song").replaceAll("\"", "") + "\"");
