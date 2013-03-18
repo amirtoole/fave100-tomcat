@@ -17,7 +17,7 @@ public class LuceneIndex {
 	public static IndexSearcher SEARCHER;
 
 	static {
-		ANALYZER = new StandardAnalyzer(Version.LUCENE_41, new CharArraySet(Version.LUCENE_41, 0, true));
+		ANALYZER = new StandardAnalyzer(Version.LUCENE_42, new CharArraySet(Version.LUCENE_42, 0, true));
 
 		final File file = new File(Thread.currentThread().getContextClassLoader().getResource("lucene-index").getPath());
 
