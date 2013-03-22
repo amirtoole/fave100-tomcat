@@ -18,7 +18,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.util.Version;
 
 @Path("/search")
 public class SearchService {
@@ -51,7 +50,7 @@ public class SearchService {
 						// Otherwise just add to the last search term
 						searchString += "*";
 					}
-					final QueryParser parser = new QueryParser(Version.LUCENE_41, "searchable_song_artist", LuceneIndex.ANALYZER);
+					final QueryParser parser = new QueryParser(LuceneIndex.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
 					// Special case for one word search to prevent wildcard messing up scoring
 					// Search terms of length 3 or less can break the search engine with SCORING_BOOLEAN_QUERY_REWRITE set
 					if(searchTerms.length == 1 && searchTerms[0].length() > 3) {

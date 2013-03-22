@@ -13,7 +13,6 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.util.Version;
 
 @Path("/lookup")
 public class LookupService {
@@ -27,7 +26,7 @@ public class LookupService {
 
 		try {
 			final long startTime = System.currentTimeMillis();
-			final Query q = new QueryParser(Version.LUCENE_41, "id", LuceneIndex.ANALYZER).parse(id);
+			final Query q = new QueryParser(LuceneIndex.LUCENE_VERSION, "id", LuceneIndex.ANALYZER).parse(id);
 
 			final TopDocs results = LuceneIndex.SEARCHER.search(q, 10);
 

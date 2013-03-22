@@ -15,9 +15,10 @@ import org.apache.lucene.util.Version;
 public class LuceneIndex {
 	public static StandardAnalyzer ANALYZER;
 	public static IndexSearcher SEARCHER;
+	public static final Version LUCENE_VERSION = Version.LUCENE_42;
 
 	static {
-		ANALYZER = new StandardAnalyzer(Version.LUCENE_42, new CharArraySet(Version.LUCENE_42, 0, true));
+		ANALYZER = new StandardAnalyzer(LUCENE_VERSION, new CharArraySet(LUCENE_VERSION, 0, true));
 
 		final File file = new File(Thread.currentThread().getContextClassLoader().getResource("lucene-index").getPath());
 
