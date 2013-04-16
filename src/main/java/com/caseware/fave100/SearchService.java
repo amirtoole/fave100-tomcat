@@ -34,10 +34,14 @@ public class SearchService {
 		else
 			limit = Math.min(25, limit);
 
+		// Ensure that Lucene operators are escaped
+		final String pattern = "([\\+\\-\\&\\|\\!\\(\\)\\[\\]\\^\\\"\\~\\*\\?\\:\\\\])";
+		final String escapedSearchString = searchTerm.replaceAll(pattern, "\\\\$1");
+
 		try {
 			final long startTime = System.currentTimeMillis();
 			final BooleanQuery q = new BooleanQuery();
-			final String[] searchTerms = searchTerm.split(" ");
+			final String[] searchTerms = escapedSearchString.split(" ");
 			// Add all search terms to boolean query
 			for (int i = 0; i < searchTerms.length; i++) {
 				// Don't add terms that are only 1 letter - they make for bad query results
