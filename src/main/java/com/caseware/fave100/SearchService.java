@@ -12,7 +12,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -51,16 +50,11 @@ public class SearchService {
 						// Add a wildcard to end of each search term
 						searchString += "*";
 					}
-					else if (i == searchTerms.length - 1) {
-						// Otherwise just add to the last search term
+					else if (i == searchTerms.length - 1 && i != 0) {
+						// Otherwise just add to the last search term if there is more than one
 						searchString += "*";
 					}
 					final QueryParser parser = new QueryParser(LuceneIndex.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
-					// Special case for one word search to prevent wildcard messing up scoring
-					// Search terms of length 3 or less can break the search engine with SCORING_BOOLEAN_QUERY_REWRITE set
-					if (searchTerms.length == 1 && searchTerms[0].length() > 3) {
-						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-					}
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
 					final Query query = parser.parse(searchString);
 					q.add(query, Occur.MUST);
