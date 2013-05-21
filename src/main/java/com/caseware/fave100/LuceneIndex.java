@@ -14,7 +14,7 @@ import org.apache.lucene.util.Version;
 public class LuceneIndex {
 	public static WhitespaceAnalyzer ANALYZER;
 	public static IndexSearcher SEARCHER;
-	public static final Version LUCENE_VERSION = Version.LUCENE_42;
+	public static final Version LUCENE_VERSION = Version.LUCENE_43;
 
 	static {
 		ANALYZER = new WhitespaceAnalyzer(LUCENE_VERSION);

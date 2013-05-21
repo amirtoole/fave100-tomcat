@@ -46,18 +46,19 @@ public class SearchService {
 			for (int i = 0; i < searchTerms.length; i++) {
 				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
-				if (searchString.length() > 1) {
-					if(allWild) {
+				if (searchString.length() > 1 || i > 0) {
+					if (allWild) {
 						// Add a wildcard to end of each search term
 						searchString += "*";
-					} else if (i == searchTerms.length - 1) {
+					}
+					else if (i == searchTerms.length - 1) {
 						// Otherwise just add to the last search term
 						searchString += "*";
 					}
 					final QueryParser parser = new QueryParser(LuceneIndex.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
 					// Special case for one word search to prevent wildcard messing up scoring
 					// Search terms of length 3 or less can break the search engine with SCORING_BOOLEAN_QUERY_REWRITE set
-					if(searchTerms.length == 1 && searchTerms[0].length() > 3) {
+					if (searchTerms.length == 1 && searchTerms[0].length() > 3) {
 						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
 					}
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
@@ -78,7 +79,7 @@ public class SearchService {
 			final int count = Math.min(results.totalHits - offset, limit);
 
 			// No results found and we haven't tried all allWild yet, try allWild
-			if(count == 0 && allWild == false) {
+			if (count == 0 && allWild == false) {
 				return getClichedMessage(callback, searchTerm, limit, page, true);
 			}
 
