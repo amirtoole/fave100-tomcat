@@ -77,10 +77,6 @@ public class SearchService {
 				return getClichedMessage(callback, searchTerm, limit, page, true);
 			}
 
-			//			// Check if page number is invalid
-			//			if (results.totalHits + limit < page * limit)
-			//				return;
-
 			final StringBuilder sb = new StringBuilder();
 			sb.append(callback);
 			sb.append("({\"results\":[");
@@ -94,7 +90,6 @@ public class SearchService {
 				sb.append(",\"song\":\"" + d.get("song").replaceAll("\"", "") + "\"");
 				sb.append(",\"artist\":\"" + d.get("artist").replaceAll("\"", "") + "\"");
 				sb.append("}");
-				//				sb.append((i + 1) + ". " + d.get("song") + "\n\t\t" + d.get("artist") + "\n");
 			}
 
 			sb.append("],\"total\":" + results.totalHits);
