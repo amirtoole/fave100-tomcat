@@ -50,7 +50,7 @@ public class SearchService {
 						// Add a wildcard to end of each search term
 						searchString += "*";
 					}
-					else if (i == searchTerms.length - 1 && i != 0) {
+					else if (i == searchTerms.length - 1 && (i != 0 || searchString.length() > 3)) {
 						// Otherwise just add to the last search term if there is more than one
 						searchString += "*";
 					}
