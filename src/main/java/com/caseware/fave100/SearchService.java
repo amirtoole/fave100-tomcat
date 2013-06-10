@@ -66,7 +66,11 @@ public class SearchService {
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
-			System.out.println("Found " + results.totalHits + " hits in " + executionTime + " ms");
+
+			// Log any results that take too long or return too many results
+			if (executionTime > 1000 || results.totalHits > 500000) {
+				System.out.println("Searched '" + escapedSearchString + "' and found " + results.totalHits + " hits in " + executionTime + " ms");
+			}
 
 			final ScoreDoc[] hits = results.scoreDocs;
 			final int offset = page * limit;
