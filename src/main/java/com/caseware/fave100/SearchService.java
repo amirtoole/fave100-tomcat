@@ -45,7 +45,7 @@ public class SearchService {
 			for (int i = 0; i < searchTerms.length; i++) {
 				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
-				if (searchString.length() > 1 || i > 0) {
+				if (searchString.length() > 1) {
 					if (allWild) {
 						// Add a wildcard to end of each search term
 						searchString += "*";
