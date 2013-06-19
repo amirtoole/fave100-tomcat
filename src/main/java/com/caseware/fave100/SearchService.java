@@ -46,13 +46,16 @@ public class SearchService {
 				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
 				if (searchString.length() > 1) {
-					if (allWild) {
-						// Add a wildcard to end of each search term
-						searchString += "*";
-					}
-					else if (i == searchTerms.length - 1 && (i != 0 || searchString.length() > 3)) {
-						// Otherwise just add to the last search term if there is more than one
-						searchString += "*";
+					// Only ever add wildcards if the term is more than length 3 or it is not the first term
+					if ((i != 0 || searchString.length() > 3)) {
+						if (allWild) {
+							// Add a wildcard to end of each search term if specified
+							searchString += "*";
+						}
+						else if (i == searchTerms.length - 1) {
+							// Otherwise just add to the last search term if there is more than one
+							searchString += "*";
+						}
 					}
 					final QueryParser parser = new QueryParser(LuceneIndex.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
