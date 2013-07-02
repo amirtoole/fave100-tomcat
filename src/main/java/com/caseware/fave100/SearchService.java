@@ -12,11 +12,13 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
+import org.musicbrainz.search.LuceneVersion;
 
 @Path("/search")
 public class SearchService {
@@ -34,33 +36,40 @@ public class SearchService {
 			limit = Math.min(25, limit);
 
 		// Ensure that Lucene operators are escaped
-		final String pattern = "([\\+\\-\\&\\|\\!\\(\\)\\[\\]\\^\\\"\\~\\*\\?\\:\\\\])";
-		final String escapedSearchString = searchTerm.replaceAll(pattern, "\\\\$1");
+		String escapedSearchString = "";
 
 		try {
 			final long startTime = System.currentTimeMillis();
 			final BooleanQuery q = new BooleanQuery();
-			final String[] searchTerms = escapedSearchString.split(" ");
+			final String[] searchTerms = searchTerm.split(" ");
 			// Add all search terms to boolean query
 			for (int i = 0; i < searchTerms.length; i++) {
 				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
+				if (searchString.startsWith("*"))
+					searchString = searchString.substring(1, searchString.length());
+				escapedSearchString = QueryParser.escape(searchString);
 				if (searchString.length() > 1) {
 					// Only ever add wildcards if the term is more than length 3 or it is not the first term
 					if ((i != 0 || searchString.length() > 3)) {
 						if (allWild) {
 							// Add a wildcard to end of each search term if specified
-							searchString += "*";
+							escapedSearchString += "*";
 						}
 						else if (i == searchTerms.length - 1) {
 							// Otherwise just add to the last search term if there is more than one
-							searchString += "*";
+							escapedSearchString += "*";
 						}
 					}
-					final QueryParser parser = new QueryParser(LuceneIndex.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
+
+					final QueryParser parser = new QueryParser(LuceneVersion.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
+					if (searchTerms.length == 1) {
+						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+					}
 					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
-					final Query query = parser.parse(searchString);
+					final Query query = parser.parse(escapedSearchString);
 					q.add(query, Occur.MUST);
+					//System.out.println("Added " + searchString + " to query");
 				}
 			}
 
@@ -69,7 +78,6 @@ public class SearchService {
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
-
 			// Log any results that take too long or return too many results
 			if (executionTime > 1000 || results.totalHits > 500000) {
 				System.out.println("Searched '" + escapedSearchString + "' and found " + results.totalHits + " hits in " + executionTime + " ms");

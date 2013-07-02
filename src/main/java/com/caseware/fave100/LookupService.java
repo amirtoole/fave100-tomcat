@@ -13,6 +13,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.musicbrainz.search.LuceneVersion;
 
 @Path("/lookup")
 public class LookupService {
@@ -26,15 +27,15 @@ public class LookupService {
 
 		try {
 			final long startTime = System.currentTimeMillis();
-			final Query q = new QueryParser(LuceneIndex.LUCENE_VERSION, "id", LuceneIndex.ANALYZER).parse(id);
+			final Query q = new QueryParser(LuceneVersion.LUCENE_VERSION, "id", LuceneIndex.ANALYZER).parse(id);
 
 			final TopDocs results = LuceneIndex.SEARCHER.search(q, 10);
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
-			System.out.println("Found " + results.totalHits + " hits in "+executionTime+" ms");
+			System.out.println("Found " + results.totalHits + " hits in " + executionTime + " ms");
 
-			if(results.totalHits == 0)
+			if (results.totalHits == 0)
 				return "";
 
 			final ScoreDoc[] hits = results.scoreDocs;

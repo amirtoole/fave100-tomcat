@@ -1,4 +1,5 @@
 package com.caseware.fave100;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -6,11 +7,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -21,6 +19,7 @@ import org.apache.lucene.index.LogDocMergePolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+import org.musicbrainz.search.analysis.MusicbrainzAnalyzer;
 
 public class Index {
 
@@ -28,7 +27,7 @@ public class Index {
 		final long startTime = new Date().getTime();
 		// Analyzer with no stopwords
 		final File file = new File("/path/to/file");
-		final StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_43, new CharArraySet(Version.LUCENE_43, new ArrayList<>(), true));
+		final MusicbrainzAnalyzer analyzer = new MusicbrainzAnalyzer();
 		// Delete all old indexes
 		final String[] myFiles = file.list();
 		for (int i = 0; i < myFiles.length; i++) {
