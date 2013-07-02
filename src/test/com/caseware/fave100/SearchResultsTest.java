@@ -36,6 +36,8 @@ public class SearchResultsTest {
 		// Ignore accents
 		assertEquals(true, inResults(makeRequest("sebastien tellier"), "La Ritournelle", "Sébastien Tellier"));
 		assertEquals(true, inResults(makeRequest("uber legitimate"), "Über Legitimate", "Mates of State"));
+		// Ignore periods in word
+		assertEquals(true, inResults(makeRequest("war resolution"), "W.A.R. // Resolution", "Lzn02"));
 		// Ignore apostrophe in word
 		assertEquals(makeRequest("cant get enough"), makeRequest("can't get enough"));
 		// But don't ignore apostrophe alone
@@ -46,8 +48,10 @@ public class SearchResultsTest {
 		assertEquals(true, inResults(makeRequest("ke$ha"), "Animal", "Ke$ha"));
 		// Escaped strings
 		assertEquals(true, inResults(makeRequest("brain stew / jaded"), "Brain Stew / Jaded", "Green Day"));
-		// Special case Musicbrainz Test Artist
+		// Special case Musicbrainz Test Artist should not be in DB
 		assertEquals(0, numResults(makeRequest("Musicbrainz Test Artist")));
+		// Treat numbers and words as synonyms
+		assertEquals(makeRequest("4th of july"), makeRequest("fourth of july"));
 	}
 
 	private String makeRequest(final String searchTerm) {

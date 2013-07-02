@@ -53,6 +53,7 @@ public class MusicbrainzAnalyzer extends Analyzer {
 		AmpersandToAndMappingHelper.addToMap(builder);
 		CharEquivToCharHelper.addToMap(builder);
 		HebrewCharMappingHelper.addToMap(builder);
+		NumericWordMappingHelper.addToMap(builder);
 		charConvertMap = builder.build();
 
 	}
