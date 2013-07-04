@@ -77,8 +77,12 @@ public class MusicbrainzTokenizerFilter extends TokenFilter {
 				}
 				else if (!Character.isLetterOrDigit(c))
 				{
+					// Only add special chars if not at beginning or end of word
+					if (i != 0 && i != bufferLength - 1) {
+						buffer[upto++] = c;
+					}
 					//Replace control/punctuation chars with '-' to help word delimiter
-					buffer[upto++] = '-';
+					//buffer[upto++] = '-';
 				}
 				else {
 					//Normal Char

@@ -70,7 +70,7 @@ public class MusicbrainzAnalyzer extends Analyzer {
 		filter = new MusicbrainzTokenizerFilter(filter);
 		filter = new AccentFilter(filter);
 		filter = new LowercaseFilter(filter);
-		filter = new MusicbrainzWordDelimiterFilter(filter,
+		/*filter = new MusicbrainzWordDelimiterFilter(filter,
 				WordDelimiterIterator.DEFAULT_WORD_DELIM_TABLE,
 				1,
 				0,
@@ -81,7 +81,7 @@ public class MusicbrainzAnalyzer extends Analyzer {
 				0,
 				0,
 				0,
-				null);
+				null);*/
 		return new TokenStreamComponents(source, filter);
 	}
 
