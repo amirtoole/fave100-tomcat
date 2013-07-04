@@ -45,13 +45,14 @@ public class SearchResultsTest {
 		// Ignore non-alphanumeric at beginning or end of word
 		assertEquals(true, inResults(makeRequest("depeche schizo"), "Just Can't Get Enough (Schizo mix)", "Depeche Mode"));
 		// But leave non-alphanumeric in middle of word untouched
-		assertEquals(true, inResults(makeRequest("ke$ha"), "Animal", "Ke$ha"));
+		assertEquals(true, inResults(makeRequest("ke$ha"), "Tik Tok", "Ke$ha"));
 		// Escaped strings
 		assertEquals(true, inResults(makeRequest("brain stew / jaded"), "Brain Stew / Jaded", "Green Day"));
 		// Special case Musicbrainz Test Artist should not be in DB
 		assertEquals(0, numResults(makeRequest("Musicbrainz Test Artist")));
 		// Treat numbers and words as synonyms
 		assertEquals(makeRequest("4th of july"), makeRequest("fourth of july"));
+		assertEquals(makeRequest("third time"), makeRequest("3rd time"));
 	}
 
 	private String makeRequest(final String searchTerm) {
