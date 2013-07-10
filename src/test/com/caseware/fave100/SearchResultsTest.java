@@ -45,7 +45,7 @@ public class SearchResultsTest {
 		// Ignore non-alphanumeric at beginning or end of word
 		assertEquals(true, inResults(makeRequest("depeche schizo"), "Just Can't Get Enough (Schizo mix)", "Depeche Mode"));
 		// But leave non-alphanumeric in middle of word untouched
-		assertEquals(true, inResults(makeRequest("ke$ha"), "Tik Tok", "Ke$ha"));
+		assertEquals(true, inResults(makeRequest("ke$ha"), "TiK ToK", "Ke$ha"));
 		// Escaped strings
 		assertEquals(true, inResults(makeRequest("brain stew / jaded"), "Brain Stew / Jaded", "Green Day"));
 		// Special case Musicbrainz Test Artist should not be in DB
