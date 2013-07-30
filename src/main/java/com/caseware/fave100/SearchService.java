@@ -1,6 +1,7 @@
 package com.caseware.fave100;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,7 +13,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
@@ -25,7 +25,7 @@ public class SearchService {
 
 	@GET
 	@Produces("text/plain")
-	public String getClichedMessage(@QueryParam("callback") final String callback, @QueryParam("searchTerm") final String searchTerm, @QueryParam("limit") int limit, @QueryParam("page") final int page, @QueryParam("allWild") final boolean allWild) {
+	public String getClichedMessage(@QueryParam("callback") final String callback, @QueryParam("searchTerm") final String searchTerm, @QueryParam("limit") int limit, @QueryParam("page") final int page) {
 		if (callback == null || callback.isEmpty()) {
 			return "Callback required";
 		}
@@ -35,41 +35,24 @@ public class SearchService {
 		else
 			limit = Math.min(25, limit);
 
-		// Ensure that Lucene operators are escaped
 		String escapedSearchString = "";
 
 		try {
 			final long startTime = System.currentTimeMillis();
 			final BooleanQuery q = new BooleanQuery();
-			final String[] searchTerms = searchTerm.split(" ");
+			final String[] searchTerms = LuceneIndex.splitTerms(searchTerm);
 			// Add all search terms to boolean query
 			for (int i = 0; i < searchTerms.length; i++) {
-				// Don't add terms that are only 1 letter - they make for bad query results
 				String searchString = searchTerms[i];
 				if (searchString.startsWith("*"))
 					searchString = searchString.substring(1, searchString.length());
+				// Ensure that Lucene operators are escaped
 				escapedSearchString = QueryParser.escape(searchString);
+				// Don't add terms that are only 1 letter - they make for bad query results
 				if (searchString.length() > 1) {
-					// Only ever add wildcards if the term is more than length 3 or it is not the first term
-					if ((i != 0 || searchString.length() > 3)) {
-						if (allWild) {
-							// Add a wildcard to end of each search term if specified
-							escapedSearchString += "*";
-						}
-						else if (i == searchTerms.length - 1) {
-							// Otherwise just add to the last search term if there is more than one
-							escapedSearchString += "*";
-						}
-					}
-
-					final QueryParser parser = new QueryParser(LuceneVersion.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.ANALYZER);
-					if (searchTerms.length == 1) {
-						parser.setMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-					}
-					parser.setDefaultOperator(QueryParser.AND_OPERATOR);
+					final QueryParser parser = new QueryParser(LuceneVersion.LUCENE_VERSION, "searchable_song_artist", LuceneIndex.SEARCH_ANALYZER);
 					final Query query = parser.parse(escapedSearchString);
 					q.add(query, Occur.MUST);
-					//System.out.println("Added " + searchString + " to query");
 				}
 			}
 
@@ -80,17 +63,12 @@ public class SearchService {
 			final long executionTime = endTime - startTime;
 			// Log any results that take too long or return too many results
 			if (executionTime > 1000 || results.totalHits > 500000) {
-				System.out.println("Searched '" + escapedSearchString + "' and found " + results.totalHits + " hits in " + executionTime + " ms");
+				System.out.println(new Date().toString() + ": Searched '" + escapedSearchString + "' and found " + results.totalHits + " hits in " + executionTime + " ms");
 			}
 
 			final ScoreDoc[] hits = results.scoreDocs;
 			final int offset = page * limit;
 			final int count = Math.min(results.totalHits - offset, limit);
-
-			// No results found and we haven't tried all allWild yet, try allWild
-			if (count == 0 && allWild == false) {
-				return getClichedMessage(callback, searchTerm, limit, page, true);
-			}
 
 			final StringBuilder sb = new StringBuilder();
 			sb.append(callback);

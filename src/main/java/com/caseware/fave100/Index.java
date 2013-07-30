@@ -8,7 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -18,7 +22,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LogDocMergePolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
+import org.musicbrainz.search.LuceneVersion;
 import org.musicbrainz.search.analysis.MusicbrainzAnalyzer;
 
 public class Index {
@@ -28,6 +32,10 @@ public class Index {
 		// Analyzer with no stopwords
 		final File file = new File("/path/to/file");
 		final MusicbrainzAnalyzer analyzer = new MusicbrainzAnalyzer();
+		// Use a separate analyzer for id so that integer ids are not converted to word synonyms: 3456 -> threefourfivesix
+		final Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
+		analyzerPerField.put("id", LuceneIndex.LOOKUP_ANALYZER);
+		final PerFieldAnalyzerWrapper wrapper = new PerFieldAnalyzerWrapper(analyzer, analyzerPerField);
 		// Delete all old indexes
 		final String[] myFiles = file.list();
 		for (int i = 0; i < myFiles.length; i++) {
@@ -46,7 +54,7 @@ public class Index {
 		}
 
 		final LogDocMergePolicy mergePolicy = new LogDocMergePolicy();
-		final IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, analyzer);
+		final IndexWriterConfig config = new IndexWriterConfig(LuceneVersion.LUCENE_VERSION, analyzer);
 		config.setMergePolicy(mergePolicy);
 
 		int count = 0;
@@ -75,7 +83,6 @@ public class Index {
 				final Field idField = new Field("id", "", idType());
 				final StoredField songField = new StoredField("song", "");
 				final StoredField artistField = new StoredField("artist", "");
-				//				final NumericDocValuesField rankField = new NumericDocValuesField("rank", 0);
 				final Field searchField = new Field("searchable_song_artist", "", indexType());
 
 				while (results.next()) {
@@ -85,15 +92,26 @@ public class Index {
 					idField.setStringValue(String.valueOf(results.getInt("id")));
 					songField.setStringValue(results.getString("song"));
 					artistField.setStringValue(results.getString("artist"));
-					//					rankField.setLongValue(results.getInt("rank"));
 
 					document.add(idField);
 					document.add(songField);
 					document.add(artistField);
-					//					document.add(rankField);
-					searchField.setStringValue(results.getString("searchable_song") + " " + results.getString("searchable_artist"));
+
+					final StringBuilder ngramsBuilder = new StringBuilder();
+					final String[] words = LuceneIndex.splitTerms(results.getString("searchable_song") + " " + results.getString("searchable_artist"));
+					for (final String word : words) {
+						for (int i = 2; i < word.length(); i++) {
+							ngramsBuilder.append(word.substring(0, i));
+							ngramsBuilder.append(" ");
+						}
+						ngramsBuilder.append(word);
+						ngramsBuilder.append(" ");
+					}
+
+					searchField.setStringValue(ngramsBuilder.toString());
 					searchField.setBoost(results.getInt("rank"));
 					document.add(searchField);
+
 					w.addDocument(document);
 
 				}
@@ -132,6 +150,7 @@ public class Index {
 		final FieldType idType = new FieldType();
 		idType.setIndexed(true);
 		idType.setStored(true);
+		idType.setTokenized(false);
 		return idType;
 	}
 

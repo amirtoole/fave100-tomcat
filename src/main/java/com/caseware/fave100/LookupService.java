@@ -27,9 +27,9 @@ public class LookupService {
 
 		try {
 			final long startTime = System.currentTimeMillis();
-			final Query q = new QueryParser(LuceneVersion.LUCENE_VERSION, "id", LuceneIndex.ANALYZER).parse(id);
+			final Query q = new QueryParser(LuceneVersion.LUCENE_VERSION, "id", LuceneIndex.LOOKUP_ANALYZER).parse(id);
 
-			final TopDocs results = LuceneIndex.SEARCHER.search(q, 10);
+			final TopDocs results = LuceneIndex.SEARCHER.search(q, 1);
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
