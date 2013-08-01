@@ -33,7 +33,6 @@ public class LookupService {
 
 			final long endTime = System.currentTimeMillis();
 			final long executionTime = endTime - startTime;
-			System.out.println("Found " + results.totalHits + " hits in " + executionTime + " ms");
 
 			if (results.totalHits == 0)
 				return "";
