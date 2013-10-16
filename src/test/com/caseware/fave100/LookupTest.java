@@ -30,8 +30,10 @@ public class LookupTest {
 	@Test
 	public void lookup() {
 		// Lookup running and returning historic results
-		assertEquals(true, inResults(lookupSong("547816"), "Pangea", "Professor Kliq"));
-		assertEquals(true, inResults(lookupSong("1822565"), "Stairway to Heaven", "Led Zeppelin"));
+		assertEquals(true, inResults(lookupSong("BbK4Ex"), "Pangea", "Professor Kliq"));
+		assertEquals(true, inResults(lookupSong("99q7oL"), "Stairway to Heaven", "Led Zeppelin"));
+		assertEquals(true, inResults(lookupSong("rG84e5"), "Rolling in the Deep", "Adele"));
+		assertEquals(true, inResults(lookupSong("xbdLz"), "Berzerk", "Eminem"));
 	}
 
 	private String lookupSong(final String id) {

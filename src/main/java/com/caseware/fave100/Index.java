@@ -22,6 +22,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LogDocMergePolicy;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.hashids.Hashids;
 import org.musicbrainz.search.LuceneVersion;
 import org.musicbrainz.search.analysis.MusicbrainzAnalyzer;
 
@@ -68,7 +69,7 @@ public class Index {
 			final String password = "password";
 
 			connection = DriverManager.getConnection(url, user, password);
-			final String statement = "SELECT * FROM table;";
+			final String statement = "SELECT * FROM autocomplete_search;";
 			final Statement stmt = connection.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
 					java.sql.ResultSet.CONCUR_READ_ONLY);
 			stmt.setFetchSize(100000);
@@ -85,11 +86,12 @@ public class Index {
 				final StoredField artistField = new StoredField("artist", "");
 				final Field searchField = new Field("searchable_song_artist", "", indexType());
 
+				Hashids hashids = new Hashids("fave100salt");
 				while (results.next()) {
 					count++;
 
 					final Document document = new Document();
-					idField.setStringValue(String.valueOf(results.getInt("id")));
+					idField.setStringValue(hashids.encrypt(results.getInt("id")));
 					songField.setStringValue(results.getString("song"));
 					artistField.setStringValue(results.getString("artist"));
 
