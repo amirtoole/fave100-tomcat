@@ -29,100 +29,31 @@ import org.musicbrainz.search.analysis.MusicbrainzAnalyzer;
 public class Index {
 
 	public static void main(final String[] args) {
-		final long startTime = new Date().getTime();
-		// Analyzer with no stopwords
-		final File file = new File("/path/to/file");
-		final MusicbrainzAnalyzer analyzer = new MusicbrainzAnalyzer();
-		// Use a separate analyzer for id so that integer ids are not converted to word synonyms: 3456 -> threefourfivesix
-		final Map<String, Analyzer> analyzerPerField = new HashMap<String, Analyzer>();
-		analyzerPerField.put("id", LuceneIndex.LOOKUP_ANALYZER);
-		final PerFieldAnalyzerWrapper wrapper = new PerFieldAnalyzerWrapper(analyzer, analyzerPerField);
-		// Delete all old indexes
-		final String[] myFiles = file.list();
-		for (int i = 0; i < myFiles.length; i++) {
-			final File subFile = new File(file, myFiles[i]);
-			subFile.delete();
-		}
-		final long deleteTime = new Date().getTime();
-		System.out.println("Time to delete old index: " + (deleteTime - startTime));
-		Directory index = null;
-		try {
-			index = FSDirectory.open(file);
-		}
-		catch (final IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		final LogDocMergePolicy mergePolicy = new LogDocMergePolicy();
-		final IndexWriterConfig config = new IndexWriterConfig(LuceneVersion.LUCENE_VERSION, analyzer);
-		config.setMergePolicy(mergePolicy);
-
-		int count = 0;
+		final long startTime = new Date().getTime();		
+		final File file = new File("C:\\Users\\yissachar.radcliffe\\dev\\EclipseWorkspace\\fave100-tomcat\\src\\main\\resources\\lucene-index");
+						
+		// Delete old index
+		deleteIndex(file);	
+						
+		// Connect to Postgres database and build new index
 		Connection connection = null;
 		long sqlTime = 0;
 		try {
-			System.out.println("Connecting to SQL...");
-			// Make connection
-			final String url = "url";
-			final String user = "root";
-			final String password = "password";
-
-			connection = DriverManager.getConnection(url, user, password);
+			System.out.println("Connecting to SQL...");		
+			final long sqlStartTime = new Date().getTime();	
+			connection = getSqlConnection();
+			
 			final String statement = "SELECT * FROM autocomplete_search;";
 			final Statement stmt = connection.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
 					java.sql.ResultSet.CONCUR_READ_ONLY);
 			stmt.setFetchSize(100000);
 			connection.setAutoCommit(false);
+			
 			final ResultSet results = stmt.executeQuery(statement);
 			sqlTime = new Date().getTime();
-			System.out.println("Time to execute SQL: " + (sqlTime - deleteTime));
-			System.out.println("Building index...");
-			try {
-				final IndexWriter w = new IndexWriter(index, config);
-				// Create fields once only, to avoid GC				
-				final Field idField = new Field("id", "", idType());
-				final StoredField songField = new StoredField("song", "");
-				final StoredField artistField = new StoredField("artist", "");
-				final Field searchField = new Field("searchable_song_artist", "", indexType());
-
-				Hashids hashids = new Hashids("fave100salt");
-				while (results.next()) {
-					count++;
-
-					final Document document = new Document();
-					idField.setStringValue(hashids.encrypt(results.getInt("id")));
-					songField.setStringValue(results.getString("song"));
-					artistField.setStringValue(results.getString("artist"));
-
-					document.add(idField);
-					document.add(songField);
-					document.add(artistField);
-
-					final StringBuilder ngramsBuilder = new StringBuilder();
-					final String[] words = LuceneIndex.splitTerms(results.getString("searchable_song") + " " + results.getString("searchable_artist"));
-					for (final String word : words) {
-						for (int i = 2; i < word.length(); i++) {
-							ngramsBuilder.append(word.substring(0, i));
-							ngramsBuilder.append(" ");
-						}
-						ngramsBuilder.append(word);
-						ngramsBuilder.append(" ");
-					}
-
-					searchField.setStringValue(ngramsBuilder.toString());
-					searchField.setBoost(results.getInt("rank"));
-					document.add(searchField);
-
-					w.addDocument(document);
-
-				}
-				w.forceMerge(1);
-				w.close();
-			}
-			catch (final IOException e) {
-				e.printStackTrace();
-			}
+			System.out.println("Time to execute SQL: " + (sqlTime - sqlStartTime));
+			
+			buildIndex(file, results);
 		}
 		catch (final SQLException e) {
 			e.printStackTrace();
@@ -135,17 +66,102 @@ public class Index {
 				catch (final SQLException e) {
 					e.printStackTrace();
 				}
-			}
-			System.out.println("Index built: " + count + " entries");
+			}			
 		}
+		
 		final long endTime = new Date().getTime();
 		System.out.println("Time to build index: " + (endTime - sqlTime));
-		final int totalMilli = (int)(endTime - startTime);
-		final int minutes = totalMilli / 1000 / 60;
-		final int seconds = (totalMilli / 1000) % 60;
-		final int milli = totalMilli % 1000;
-		System.out.println("Total time: " + minutes + "m " + seconds + "s " + milli + "ms ");
+		printTotalTime(startTime, endTime);
 
+	}
+	
+	/**
+	 * Deletes all files in the directory
+	 * @param file The directory containing the index files
+	 */
+	private static void deleteIndex(File file) {
+		final long startTime = new Date().getTime();	
+		
+		final String[] myFiles = file.list();
+		for (int i = 0; i < myFiles.length; i++) {
+			final File subFile = new File(file, myFiles[i]);
+			subFile.delete();
+		}
+		
+		final long deleteTime = new Date().getTime();		
+		System.out.println("Time to delete old index: " + (deleteTime - startTime));
+	}
+	
+	private static Connection getSqlConnection() throws SQLException {
+		final String url = "jdbc:postgresql://192.168.214.177/musicbrainz";
+		final String user = "musicbrainz";
+		final String password = "";
+		return DriverManager.getConnection(url, user, password);
+	}
+	
+	private static void buildIndex(File file, ResultSet results) throws SQLException {
+		System.out.println("Building index...");
+		int count = 0;
+		
+		try {
+			final MusicbrainzAnalyzer analyzer = new MusicbrainzAnalyzer();
+			final IndexWriterConfig config = new IndexWriterConfig(LuceneVersion.LUCENE_VERSION, analyzer);
+			config.setMergePolicy(new LogDocMergePolicy());			
+			final IndexWriter w = new IndexWriter(FSDirectory.open(file), config);
+			
+			// Create fields once only, for index build performance				
+			final Field idField = new Field("id", "", idType());
+			final StoredField songField = new StoredField("song", "");
+			final StoredField artistField = new StoredField("artist", "");
+			final Field searchField = new Field("searchable_song_artist", "", indexType());
+
+			Hashids hashids = new Hashids("fave100salt");
+			while (results.next()) {
+				count++;
+				
+				idField.setStringValue(hashids.encrypt(results.getInt("id")));
+				songField.setStringValue(results.getString("song"));
+				artistField.setStringValue(results.getString("artist"));
+				searchField.setStringValue(getNgrams(results.getString("searchable_song") + " " + results.getString("searchable_artist")));					
+				searchField.setBoost(results.getInt("rank"));
+
+				w.addDocument(buildDocument(idField, songField, artistField, searchField));
+
+			}
+			// Merge all indexes into one index
+			// In general this is not advised since it adds time to building the index, 
+			// but since we don't care that much about index build time (since it takes place offline)
+			// we do this for the small performance we gain of not having to read multiple indexes
+			w.forceMerge(1);
+			w.close();
+		}
+		catch (final IOException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("Index built: " + count + " entries");
+	}
+	
+	/**
+	 * Builds a string consisting of all ngrams of the input terms of size 2 or more.
+	 * For example, the term "cars song" would become "ca car cars so son song"
+	 * @param terms
+	 * @return
+	 */
+	private static String getNgrams(String terms) {
+		final StringBuilder ngramsBuilder = new StringBuilder();
+		final String[] words = LuceneIndex.splitTerms(terms);
+		
+		for (final String word : words) {
+			for (int i = 2; i < word.length(); i++) {
+				ngramsBuilder.append(word.substring(0, i));
+				ngramsBuilder.append(" ");
+			}
+			ngramsBuilder.append(word);
+			ngramsBuilder.append(" ");
+		}
+
+		return ngramsBuilder.toString();
 	}
 
 	private static FieldType idType() {
@@ -162,6 +178,28 @@ public class Index {
 		indexType.setStored(false);
 		indexType.setTokenized(true);
 		return indexType;
+	}
+	
+	private static Document buildDocument(Field idField, StoredField songField, StoredField artistField, Field searchField) {
+		final Document document = new Document();
+		document.add(idField);
+		document.add(songField);
+		document.add(artistField);
+		document.add(searchField);
+		return document;
+	}
+	
+	/**
+	 * Prints the formatted time duration, e.g: 9m 37s 151ms
+	 * @param startTime
+	 * @param endTime
+	 */
+	private static void printTotalTime(long startTime, long endTime) {		
+		final int totalMilli = (int)(endTime - startTime);
+		final int minutes = totalMilli / 1000 / 60;
+		final int seconds = (totalMilli / 1000) % 60;
+		final int milli = totalMilli % 1000;
+		System.out.println("Total time: " + minutes + "m " + seconds + "s " + milli + "ms ");
 	}
 
 }
