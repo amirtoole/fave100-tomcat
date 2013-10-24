@@ -8,11 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -20,7 +16,6 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LogDocMergePolicy;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.hashids.Hashids;
 import org.musicbrainz.search.LuceneVersion;
@@ -38,6 +33,7 @@ public class Index {
 		// Connect to Postgres database and build new index
 		Connection connection = null;
 		long sqlTime = 0;
+		
 		try {
 			System.out.println("Connecting to SQL...");		
 			final long sqlStartTime = new Date().getTime();	
@@ -55,9 +51,11 @@ public class Index {
 			
 			buildIndex(file, results);
 		}
+		
 		catch (final SQLException e) {
 			e.printStackTrace();
 		}
+		
 		finally {
 			if (connection != null) {
 				try {
@@ -72,7 +70,6 @@ public class Index {
 		final long endTime = new Date().getTime();
 		System.out.println("Time to build index: " + (endTime - sqlTime));
 		printTotalTime(startTime, endTime);
-
 	}
 	
 	/**
@@ -155,10 +152,10 @@ public class Index {
 		for (final String word : words) {
 			for (int i = 2; i < word.length(); i++) {
 				ngramsBuilder.append(word.substring(0, i));
-				ngramsBuilder.append(" ");
+				ngramsBuilder.append(' ');
 			}
 			ngramsBuilder.append(word);
-			ngramsBuilder.append(" ");
+			ngramsBuilder.append(' ');
 		}
 
 		return ngramsBuilder.toString();
