@@ -90,7 +90,7 @@ public class Index {
 	}
 	
 	private static Connection getSqlConnection() throws SQLException {
-		final String url = "jdbc:postgresql://192.168.214.177/musicbrainz";
+		final String url = "jdbc:postgresql://192.168.214.116/musicbrainz";
 		final String user = "musicbrainz";
 		final String password = "";
 		return DriverManager.getConnection(url, user, password);
