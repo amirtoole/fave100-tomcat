@@ -20,41 +20,87 @@ import com.google.gson.JsonParser;
 public class SearchResultsTest {
 
 	@Test
-	public void correctSearchResults() {
-		// Don't search for single letter terms
+	public void search_service_should_not_search_for_single_letter_terms() {
 		assertEquals(0, numResults(makeRequest("a")));
+	}
+	
+	@Test
+	public void search_service_should_not_search_for_single_letter_terms_even_if_special_char() {
 		assertEquals(0, numResults(makeRequest("?")));
-		// Basic
+	}
+	
+	@Test
+	public void search_service_should_find_existing_songs() {
 		assertEquals(true, inResults(makeRequest("stairway"), "Stairway to Heaven", "Led Zeppelin"));
 		assertEquals(true, inResults(makeRequest("led zep"), "Stairway to Heaven", "Led Zeppelin"));
 		assertEquals(true, inResults(makeRequest("pangea kliq"), "Pangea", "Professor Kliq"));
 		assertEquals(true, inResults(makeRequest("kliq pangea"), "Pangea", "Professor Kliq"));
 		assertEquals(true, inResults(makeRequest("hard button to"), "The Hardest Button to Button", "The White Stripes"));
-		// Numbers 
+	}
+
+	@Test
+	public void search_service_should_not_find_non_existing_songs() {
+		assertEquals(0, numResults(makeRequest("zxzxzxzxzxzxzxzxzxzxzxzxzxzxzx")));
+	}
+	
+	@Test
+	public void search_service_should_find_existing_songs_with_number_search() {
 		assertEquals(true, inResults(makeRequest("1979"), "1979", "The Smashing Pumpkins"));
-		// Ignore case
+	}
+	
+	@Test
+	public void search_service_should_find_existing_songs_regardless_of_letter_case() {
 		assertEquals(makeRequest("PanGeA KLIQ"), makeRequest("pangea kliq"));
-		// Ignore accents
+	}
+	
+	@Test
+	public void search_service_should_ignore_accents_in_search() {
 		assertEquals(true, inResults(makeRequest("sebastien tellier"), "La Ritournelle", "Sébastien Tellier"));
 		assertEquals(true, inResults(makeRequest("uber legitimate"), "Über Legitimate", "Mates of State"));
-		// Ignore periods in search and index
+	}
+	
+	@Test
+	public void search_service_should_ignore_periods_in_search() {
 		assertEquals(true, inResults(makeRequest("war resolution"), "W.A.R. // Resolution", "Lzn02"));
 		assertEquals(true, inResults(makeRequest("W.A.R. resolution"), "W.A.R. // Resolution", "Lzn02"));
-		// Ignore apostrophe in search and index
+	}
+	
+	@Test
+	public void search_service_should_ignore_apostrophe_in_search() {
 		assertEquals(makeRequest("cant get enough"), makeRequest("can't get enough"));
-		// Ignore non-alphanumeric 
+
+	}
+	
+	@Test
+	public void search_service_should_ignore_non_alphanumeric_characters_in_search() {
 		assertEquals(true, inResults(makeRequest("depeche schizo"), "Just Can't Get Enough (Schizo mix)", "Depeche Mode"));
 		assertEquals(true, inResults(makeRequest("blink-182"), "All the Small Things", "blink‐182"));
 		assertEquals(true, inResults(makeRequest("blink 182"), "All the Small Things", "blink‐182"));
-		// kesha -> Ke$ha
+	}
+	
+	@Test
+	public void search_service_should_find_ke$ha_from_kesha() {
 		assertEquals(true, inResults(makeRequest("kesha"), "TiK ToK", "Ke$ha"));
-		// pink -> P!nk
+	}
+	
+	@Test
+	public void search_service_should_find_pnk_from_pink() {
 		assertEquals(true, inResults(makeRequest("pink glass"), "Raise Your Glass", "P!nk"));
-		// Escaped strings
+	}
+	
+	@Test
+	public void search_service_should_find_even_with_escaped_strings() {
 		assertEquals(true, inResults(makeRequest("brain stew / jaded"), "Brain Stew / Jaded", "Green Day"));
-		// Special case Musicbrainz Test Artist should not be in DB
+	}	
+
+	@Test
+	public void search_service_should_not_find_musicbrainz_test_artist() {
 		assertEquals(0, numResults(makeRequest("Musicbrainz Test Artist")));
-		// Treat numbers and words as synonyms
+	}
+	
+	@Test
+	public void search_service_should_treat_numbers_and_words_as_synonyms() {
+
 		assertEquals(makeRequest("4th of july"), makeRequest("fourth of july"));
 		assertEquals(makeRequest("third time"), makeRequest("3rd time"));
 	}
