@@ -32,7 +32,6 @@ public class SearchResultsTest {
 	@Test
 	public void search_service_should_find_existing_songs() {
 		assertEquals(true, inResults(makeRequest("stairway"), "Stairway to Heaven", "Led Zeppelin"));
-		assertEquals(true, inResults(makeRequest("led zep"), "Stairway to Heaven", "Led Zeppelin"));
 		assertEquals(true, inResults(makeRequest("pangea kliq"), "Pangea", "Professor Kliq"));
 		assertEquals(true, inResults(makeRequest("kliq pangea"), "Pangea", "Professor Kliq"));
 		assertEquals(true, inResults(makeRequest("hard button to"), "The Hardest Button to Button", "The White Stripes"));
