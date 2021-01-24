@@ -1,8 +1,5 @@
 package com.caseware.fave100;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -11,17 +8,27 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.musicbrainz.search.LuceneVersion;
 import org.musicbrainz.search.analysis.MusicbrainzAnalyzer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 public class LuceneIndex {
+
+	private static final Logger logger = LoggerFactory.getLogger(LuceneIndex.class);
+
 	public static MusicbrainzAnalyzer SEARCH_ANALYZER;
 	public static WhitespaceAnalyzer LOOKUP_ANALYZER;
 	public static IndexSearcher SEARCHER;
 
 	static {
+		logger.info("starting lucene index");
 		SEARCH_ANALYZER = new MusicbrainzAnalyzer();
 		LOOKUP_ANALYZER = new WhitespaceAnalyzer(LuceneVersion.LUCENE_VERSION);
 
-		final File file = new File(Thread.currentThread().getContextClassLoader().getResource("lucene-index").getPath());
+		S3BucketDownload s3BucketDownload = new S3BucketDownload(); // Comment this out when building index locally and replace file below
+		final File file = new File(S3BucketDownload.FOLDER_PATH);
 
 		try {
 			final Directory index = FSDirectory.open(file);
